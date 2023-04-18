@@ -1,7 +1,7 @@
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -118,6 +118,13 @@ if(USE_CCACHE)
-     endif(CCACHE_FOUND)
+@@ -129,6 +129,13 @@ if(USE_CCACHE)
+     endif()
  endif()
  
 +# using pkg-config to configure include paths and link libraries
@@ -14,7 +14,7 @@
  if(ENABLE_CTEST)
      include(CTest)
  endif()
-@@ -320,11 +327,7 @@ if(BUILD_EXTERNAL AND IS_DIRECTORY ${CMA
+@@ -319,11 +326,7 @@ if(BUILD_EXTERNAL AND IS_DIRECTORY ${CMA
      add_subdirectory(External)
  endif()
  
@@ -42,33 +42,33 @@
 -
 --- a/glslang/CMakeLists.txt
 +++ b/glslang/CMakeLists.txt
-@@ -209,6 +209,8 @@ if(ENABLE_GLSLANG_INSTALL)
-                 EXPORT  glslangTargets
-                 ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+@@ -224,6 +224,9 @@ if(ENABLE_GLSLANG_INSTALL)
+         install(FILES "${CMAKE_CURRENT_BINARY_DIR}/glslangTargets.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake)
      endif()
+ 
 +    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/glslang.pc.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/glslang.pc @ONLY)
 +    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/glslang.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
- 
-     install(EXPORT glslangTargets DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake)
- 
++
+     set(ALL_HEADERS
+         ${GLSLANG_HEADERS}
+         ${MACHINEINDEPENDENT_HEADERS})
 --- /dev/null
 +++ b/glslang/glslang.pc.cmake.in
 @@ -0,0 +1,11 @@
-+    prefix=@CMAKE_INSTALL_PREFIX@
-+    exec_prefix=@CMAKE_INSTALL_PREFIX@
-+    libdir=${exec_prefix}/@CMAKE_INSTALL_LIBDIR@
-+    includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
-+    
-+    Name: @PROJECT_NAME@
-+    Description: OpenGL and OpenGL ES shader front end and validator
-+    Requires:
-+    Version: @VERSION@
-+    Libs: -L${libdir} -lglslang -lOSDependent -lHLSL -lOGLCompiler -lSPVRemapper
-+    Cflags: -I${includedir}
-\ No newline at end of file
++prefix=@CMAKE_INSTALL_PREFIX@
++exec_prefix=@CMAKE_INSTALL_PREFIX@
++libdir=${exec_prefix}/@CMAKE_INSTALL_LIBDIR@
++includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
++
++Name: @PROJECT_NAME@
++Description: OpenGL and OpenGL ES shader front end and validator
++Requires:
++Version: @VERSION@
++Libs: -L${libdir} -lglslang -lOSDependent -lHLSL -lOGLCompiler -lSPVRemapper
++Cflags: -I${includedir}
 --- a/SPIRV/CMakeLists.txt
 +++ b/SPIRV/CMakeLists.txt
-@@ -77,6 +77,10 @@ target_include_directories(SPIRV PUBLIC
+@@ -78,6 +78,10 @@ target_include_directories(SPIRV PUBLIC
  
  glslang_add_build_info_dependency(SPIRV)
  
@@ -79,7 +79,7 @@
  if (ENABLE_SPVREMAPPER)
      add_library(SPVRemapper ${LIB_TYPE} ${SPVREMAP_SOURCES} ${SPVREMAP_HEADERS})
      set_property(TARGET SPVRemapper PROPERTY FOLDER glslang)
-@@ -90,15 +94,21 @@ if(WIN32 AND BUILD_SHARED_LIBS)
+@@ -91,15 +95,21 @@ if(WIN32 AND BUILD_SHARED_LIBS)
      endif()
  endif()
  
@@ -91,7 +91,7 @@
 +    target_compile_options(SPIRV PUBLIC ${SPIRV_TOOLS_SHARED_CFLAGS_OTHER})
 +    target_link_libraries(SPIRV ${SPIRV_TOOLS_SHARED_LIBRARIES})
 +endif(BUILD_SHARED_LIBS)
-+ 
++
  if(ENABLE_OPT)
      target_include_directories(SPIRV
          PRIVATE ${spirv-tools_SOURCE_DIR}/include
@@ -104,32 +104,31 @@
 +    target_link_libraries(SPIRV glslang)
  else()
      target_link_libraries(SPIRV PRIVATE MachineIndependent)
- endif(ENABLE_OPT)
-@@ -133,6 +143,9 @@ if(ENABLE_GLSLANG_INSTALL)
-     endif()
+ endif()
+@@ -141,5 +151,9 @@ if(ENABLE_GLSLANG_INSTALL)
+     ")
+     install(FILES "${CMAKE_CURRENT_BINARY_DIR}/SPIRVTargets.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake)
  
-     install(EXPORT SPIRVTargets DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake)
 +    # spirv.pc Configuration
 +    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/spirv.pc.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/spirv.pc @ONLY)
 +    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/spirv.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
- 
++
      install(FILES ${HEADERS} ${SPVREMAP_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/glslang/SPIRV/)
- endif(ENABLE_GLSLANG_INSTALL)
+ endif()
 --- /dev/null
 +++ b/SPIRV/spirv.pc.cmake.in
 @@ -0,0 +1,11 @@
-+    prefix=@CMAKE_INSTALL_PREFIX@
-+    exec_prefix=@CMAKE_INSTALL_PREFIX@
-+    libdir=${exec_prefix}/@CMAKE_INSTALL_LIBDIR@
-+    includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
-+    
-+    Name: @SPIRV_NAME@
-+    Description: SPIR-V is a binary intermediate language for representing graphical-shader stages and compute kernels for multiple Khronos APIs, including OpenCL, OpenGL, and Vulkan
-+    Requires:
-+    Version: @SPIRV_VERSION@
-+    Libs: -L${libdir} -lSPIRV
-+    Cflags: -I${includedir}
-\ No newline at end of file
++prefix=@CMAKE_INSTALL_PREFIX@
++exec_prefix=@CMAKE_INSTALL_PREFIX@
++libdir=${exec_prefix}/@CMAKE_INSTALL_LIBDIR@
++includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
++
++Name: @SPIRV_NAME@
++Description: SPIR-V is a binary intermediate language for representing graphical-shader stages and compute kernels for multiple Khronos APIs, including OpenCL, OpenGL, and Vulkan
++Requires:
++Version: @SPIRV_VERSION@
++Libs: -L${libdir} -lSPIRV
++Cflags: -I${includedir}
 --- a/SPIRV/SpvTools.cpp
 +++ b/SPIRV/SpvTools.cpp
 @@ -43,7 +43,7 @@
@@ -143,7 +142,7 @@
  
 --- a/StandAlone/CMakeLists.txt
 +++ b/StandAlone/CMakeLists.txt
-@@ -56,6 +56,14 @@ if(ENABLE_SPVREMAPPER)
+@@ -72,6 +72,14 @@ if(ENABLE_SPVREMAPPER)
      set(LIBRARIES ${LIBRARIES} SPVRemapper)
  endif()
  
@@ -158,8 +157,8 @@
  if(WIN32)
      set(LIBRARIES ${LIBRARIES} psapi)
  elseif(UNIX)
-@@ -65,9 +73,6 @@ elseif(UNIX)
- endif(WIN32)
+@@ -81,9 +89,6 @@ elseif(UNIX)
+ endif()
  
  target_link_libraries(glslangValidator ${LIBRARIES})
 -target_include_directories(glslangValidator PUBLIC

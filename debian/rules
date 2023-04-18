@@ -5,10 +5,8 @@
 
 override_dh_auto_configure:
 	dh_auto_configure -- \
+		-DBUILD_SHARED_LIBS=OFF \
 		-DCMAKE_BUILD_TYPE=Release
-
-override_dh_missing:
-	dh_missing --fail-missing
 
 ifneq (,$(filter $(DEB_HOST_ARCH), hppa powerpc ppc64 s390x sparc64))
 override_dh_auto_test:

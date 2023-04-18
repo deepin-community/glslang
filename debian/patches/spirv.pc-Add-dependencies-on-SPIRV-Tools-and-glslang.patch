@@ -22,17 +22,14 @@ Signed-off-by: Simon McVittie <smcv@collabora.com>
  SPIRV/spirv.pc.cmake.in | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/SPIRV/spirv.pc.cmake.in b/SPIRV/spirv.pc.cmake.in
-index dfcad94..d47d427 100644
 --- a/SPIRV/spirv.pc.cmake.in
 +++ b/SPIRV/spirv.pc.cmake.in
-@@ -5,7 +5,7 @@
-     
-     Name: @SPIRV_NAME@
-     Description: SPIR-V is a binary intermediate language for representing graphical-shader stages and compute kernels for multiple Khronos APIs, including OpenCL, OpenGL, and Vulkan
--    Requires:
-+    Requires: SPIRV-Tools, glslang
-     Version: @SPIRV_VERSION@
-     Libs: -L${libdir} -lSPIRV
-     Cflags: -I${includedir}
-\ No newline at end of file
+@@ -5,7 +5,7 @@ includedir=${prefix}/@CMAKE_INSTALL_INCL
+ 
+ Name: @SPIRV_NAME@
+ Description: SPIR-V is a binary intermediate language for representing graphical-shader stages and compute kernels for multiple Khronos APIs, including OpenCL, OpenGL, and Vulkan
+-Requires:
++Requires: SPIRV-Tools, glslang
+ Version: @SPIRV_VERSION@
+ Libs: -L${libdir} -lSPIRV
+ Cflags: -I${includedir}
