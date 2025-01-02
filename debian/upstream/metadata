@@ -1,0 +1,6 @@
+Repository: https://github.com/KhronosGroup/glslang.git
+Bug-Database: https://github.com/KhronosGroup/glslang/issues
+Repository-Browse: https://github.com/KhronosGroup/glslang
+Bug-Submit: https://github.com/KhronosGroup/glslang/issues/new
+Security-Contact: https://github.com/KhronosGroup/glslang/tree/HEAD/SECURITY.md
+Changelog: https://github.com/KhronosGroup/glslang/blob/main/CHANGES.md

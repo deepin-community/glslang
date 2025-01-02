@@ -13,5 +13,5 @@ export LC_ALL=C.UTF-8
 spirv-remap --help 2>&1 | tee "$AUTOPKGTEST_TMP/help"
 grep -q Usage: "$AUTOPKGTEST_TMP/help"
 
-glslangValidator --help 2>&1 | tee "$AUTOPKGTEST_TMP/help"
+glslang --help 2>&1 | tee "$AUTOPKGTEST_TMP/help"
 grep -q Usage: "$AUTOPKGTEST_TMP/help"
