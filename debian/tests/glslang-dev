@@ -46,21 +46,22 @@ int main (void)
 }
 EOF
 
-# This is hard-coded because there used to be no pkg-config, but matches
-# what renderdoc does.
-"${CXX}" -std=c++11 -o trivial trivial.cpp -lglslang -lMachineIndependent -lGenericCodeGen -lHLSL -lOGLCompiler -lOSDependent -lSPIRV -lpthread
+# This is hard-coded because there used to be no pkg-config.
+"${CXX}" -std=c++17 -o trivial trivial.cpp -lglslang -lMachineIndependent -lGenericCodeGen -lOSDependent -lSPIRV -lpthread
 test -x trivial
 ./trivial
+
+rm trivial
 
 # Or with the pkg-config metadata.
 # Deliberately word-splitting the output of pkg-config:
 # shellcheck disable=SC2046
-"${CXX}" -std=c++11 -o trivial trivial.cpp $("$PKG_CONFIG" --cflags --libs glslang)
+"${CXX}" -std=c++17 -o trivial trivial.cpp $("$PKG_CONFIG" --cflags --libs glslang)
 test -x trivial
 ./trivial
 
 # shellcheck disable=SC2046
-"${CXX}" -std=c++11 -o spirv spirv.cpp $("$PKG_CONFIG" --cflags --libs spirv)
+"${CXX}" -std=c++17 -o spirv spirv.cpp $("$PKG_CONFIG" --cflags --libs spirv)
 test -x spirv
 ./spirv
 

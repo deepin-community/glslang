@@ -5,7 +5,11 @@ Subject: glslang.pc: Add missing libraries
 -lglslang depends on -lMachineIndependent, and -lOGLCompiler depends on
 -lGenericCodeGen.
 
+v2 OGLCompiler was removed, so remove GenericCodeGen
+
 Signed-off-by: Simon McVittie <smcv@collabora.com>
+
+Philippe SWARTVAGHER <phil.swart@gmx.fr>, 2024-05-26: GenericCodeGen seems to be still required.
 ---
  glslang/glslang.pc.cmake.in | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
@@ -18,7 +22,7 @@ index 921497e..8c49e0c 100644
  Description: OpenGL and OpenGL ES shader front end and validator
  Requires:
  Version: @VERSION@
--Libs: -L${libdir} -lglslang -lOSDependent -lHLSL -lOGLCompiler -lSPVRemapper
+-Libs: -L${libdir} -lglslang -lOSDependent -lSPVRemapper
 -Cflags: -I${includedir}
-+Libs: -L${libdir} -lglslang -lMachineIndependent -lOSDependent -lHLSL -lOGLCompiler -lGenericCodeGen -lSPVRemapper -lpthread
++Libs: -L${libdir} -lglslang -lMachineIndependent -lGenericCodeGen -lOSDependent -lSPVRemapper -lpthread
 +Cflags: -I${includedir}

@@ -1,4 +1,3 @@
-glslang-default-resource-limits_staticlib.patch
 0001-pkg-config-compatibility.patch
 glslang.pc-Add-missing-libraries.patch
 spirv.pc-Add-dependencies-on-SPIRV-Tools-and-glslang.patch
