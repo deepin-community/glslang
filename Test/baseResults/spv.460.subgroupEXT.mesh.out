@@ -13,10 +13,8 @@ spv.460.subgroupEXT.mesh
                               Capability GroupNonUniformShuffleRelative
                               Capability GroupNonUniformClustered
                               Capability GroupNonUniformQuad
-                              Capability FragmentShadingRateKHR
                               Capability MeshShadingEXT
                               Extension  "SPV_EXT_mesh_shader"
-                              Extension  "SPV_KHR_fragment_shading_rate"
                1:             ExtInstImport  "GLSL.std.450"
                               MemoryModel Logical GLSL450
                               EntryPoint MeshEXT 4  "main" 35 41 57 109 147 161 162 167 168 171 172 173 174 175
@@ -65,7 +63,6 @@ spv.460.subgroupEXT.mesh
                               MemberName 106(gl_MeshPerPrimitiveEXT) 1  "gl_Layer"
                               MemberName 106(gl_MeshPerPrimitiveEXT) 2  "gl_ViewportIndex"
                               MemberName 106(gl_MeshPerPrimitiveEXT) 3  "gl_CullPrimitiveEXT"
-                              MemberName 106(gl_MeshPerPrimitiveEXT) 4  "gl_PrimitiveShadingRateEXT"
                               Name 109  "gl_MeshPrimitivesEXT"
                               Name 147  "gl_PrimitiveTriangleIndicesEXT"
                               Name 161  "gl_SubgroupSize"
@@ -82,22 +79,20 @@ spv.460.subgroupEXT.mesh
                               Name 253  "ballot"
                               Decorate 35(gl_LocalInvocationID) BuiltIn LocalInvocationId
                               Decorate 41(gl_WorkGroupID) BuiltIn WorkgroupId
+                              Decorate 54(gl_MeshPerVertexEXT) Block
                               MemberDecorate 54(gl_MeshPerVertexEXT) 0 BuiltIn Position
                               MemberDecorate 54(gl_MeshPerVertexEXT) 1 BuiltIn PointSize
                               MemberDecorate 54(gl_MeshPerVertexEXT) 2 BuiltIn ClipDistance
                               MemberDecorate 54(gl_MeshPerVertexEXT) 3 BuiltIn CullDistance
-                              Decorate 54(gl_MeshPerVertexEXT) Block
-                              MemberDecorate 106(gl_MeshPerPrimitiveEXT) 0 PerPrimitiveNV
-                              MemberDecorate 106(gl_MeshPerPrimitiveEXT) 0 BuiltIn PrimitiveId
-                              MemberDecorate 106(gl_MeshPerPrimitiveEXT) 1 PerPrimitiveNV
-                              MemberDecorate 106(gl_MeshPerPrimitiveEXT) 1 BuiltIn Layer
-                              MemberDecorate 106(gl_MeshPerPrimitiveEXT) 2 PerPrimitiveNV
-                              MemberDecorate 106(gl_MeshPerPrimitiveEXT) 2 BuiltIn ViewportIndex
-                              MemberDecorate 106(gl_MeshPerPrimitiveEXT) 3 PerPrimitiveNV
-                              MemberDecorate 106(gl_MeshPerPrimitiveEXT) 3 BuiltIn CullPrimitiveEXT
-                              MemberDecorate 106(gl_MeshPerPrimitiveEXT) 4 PerPrimitiveNV
-                              MemberDecorate 106(gl_MeshPerPrimitiveEXT) 4 BuiltIn PrimitiveShadingRateKHR
                               Decorate 106(gl_MeshPerPrimitiveEXT) Block
+                              MemberDecorate 106(gl_MeshPerPrimitiveEXT) 0 BuiltIn PrimitiveId
+                              MemberDecorate 106(gl_MeshPerPrimitiveEXT) 0 PerPrimitiveNV
+                              MemberDecorate 106(gl_MeshPerPrimitiveEXT) 1 BuiltIn Layer
+                              MemberDecorate 106(gl_MeshPerPrimitiveEXT) 1 PerPrimitiveNV
+                              MemberDecorate 106(gl_MeshPerPrimitiveEXT) 2 BuiltIn ViewportIndex
+                              MemberDecorate 106(gl_MeshPerPrimitiveEXT) 2 PerPrimitiveNV
+                              MemberDecorate 106(gl_MeshPerPrimitiveEXT) 3 BuiltIn CullPrimitiveEXT
+                              MemberDecorate 106(gl_MeshPerPrimitiveEXT) 3 PerPrimitiveNV
                               Decorate 147(gl_PrimitiveTriangleIndicesEXT) BuiltIn PrimitiveTriangleIndicesEXT
                               Decorate 161(gl_SubgroupSize) RelaxedPrecision
                               Decorate 161(gl_SubgroupSize) BuiltIn SubgroupSize
@@ -151,7 +146,7 @@ spv.460.subgroupEXT.mesh
               79:     30(int) Constant 264
               80:     30(int) Constant 2
              105:             TypeBool
-106(gl_MeshPerPrimitiveEXT):             TypeStruct 59(int) 59(int) 59(int) 105(bool) 59(int)
+106(gl_MeshPerPrimitiveEXT):             TypeStruct 59(int) 59(int) 59(int) 105(bool)
              107:             TypeArray 106(gl_MeshPerPrimitiveEXT) 47
              108:             TypePointer Output 107
 109(gl_MeshPrimitivesEXT):    108(ptr) Variable Output

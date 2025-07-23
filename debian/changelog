@@ -1,8 +1,122 @@
-glslang (12.0.0-2deepin0) unstable; urgency=medium
+glslang (15.1.0+1.4.309.0-1) unstable; urgency=medium
 
-  * No source change upload against GCC 12.
+  * New upstream release from vulkan-sdk-1.4.309.0 -tag.
+  * control: Bump spirv-tools depends.
+  * patches: Refresh pkgconfig patch.
 
- -- Tianyu Chen <sweetyfish@deepin.org>  Thu, 19 Sep 2024 22:48:28 +0800
+ -- Timo Aaltonen <tjaalton@debian.org>  Tue, 18 Mar 2025 19:32:57 +0200
+
+glslang (15.1.0-2) unstable; urgency=medium
+
+  * patches: Update pkgconf compatibility patch, refresh others.
+  * patches: Fix linking in spirv.pc. Thanks, Philippe Swartvagher!
+    (Closes: #1093845)
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Fri, 14 Feb 2025 08:29:18 +0200
+
+glslang (15.1.0-1) unstable; urgency=medium
+
+  * New upstream release.
+  * control: Bump spirv-tools depends.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Thu, 16 Jan 2025 15:52:50 +0200
+
+glslang (15.0.0-1) unstable; urgency=medium
+
+  * New upstream release.
+  * patches: Refreshed.
+  * control: Bump spirv-tools depends.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Wed, 16 Oct 2024 13:48:10 +0300
+
+glslang (14.3.0-1) unstable; urgency=medium
+
+  * New upstream release.
+  * patches: Refreshed, drop upstreamed patch.
+  * control: Bump spirv-tools depends.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Thu, 29 Aug 2024 11:39:00 +0300
+
+glslang (14.2.0-1) unstable; urgency=medium
+
+  [ Timo Aaltonen ]
+  * New upstream release.
+
+  [ Philippe SWARTVAGHER ]
+  * Convert d/source/format to "3.0 (quilt)"
+  * Build-Depends on pkgconf instead of pkg-config
+  * Remove spurious ${shlibs:Depends} from Depends of glslang-dev
+  * Do not use dpkg-parsechangelog in d/rules, as suggested by Lintian
+  * Bump Standards-Version to 4.7.0: no change needed
+  * Build with hardening=+all
+  * Rename overridden lintian tag binary-without-manpage to no-manual-page
+  * Add 'Rules-Requires-Root: no' to d/control
+  * Add a patch to fix few typos
+  * Add d/upstream/metadata
+  * Fix linking glslang and spirv. Closes: #1062799
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Tue, 28 May 2024 12:42:40 +0300
+
+glslang (14.1.0-1) unstable; urgency=medium
+
+  * New upstream release.
+  * control: Bump spirv-tools depends.
+  * patches: Refreshed.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Wed, 17 Apr 2024 19:04:52 +0300
+
+glslang (14.0.0-2) unstable; urgency=medium
+
+  * tests, patches: OGLCompiler got removed, update pkgconfig patch and
+    tests to link correctly.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Wed, 07 Feb 2024 17:48:39 +0200
+
+glslang (14.0.0-1) unstable; urgency=medium
+
+  * New upstream release.
+  * control: Bump spirv-tools depends.
+  * patches: Refreshed.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Tue, 30 Jan 2024 19:33:03 +0200
+
+glslang (13.1.1-3) unstable; urgency=medium
+
+  * tests: Bump c++ standard to 17.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Sun, 03 Dec 2023 20:12:35 +0200
+
+glslang (13.1.1-2) unstable; urgency=medium
+
+  * tests: Bump c++ to 13.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Sat, 02 Dec 2023 12:28:51 +0200
+
+glslang (13.1.1-1) unstable; urgency=medium
+
+  * New upstream release.
+  * control: Bump spirv-tools depends.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Fri, 03 Nov 2023 11:48:15 +0200
+
+glslang (13.0.0-1) unstable; urgency=medium
+
+  * New upstream release.
+  * control: Bump spirv-tools depends.
+  * glslang-default-resource-limits_staticlib.patch: Dropped, upstream.
+  * rules, 0001-pkg-config-compatibility.patch: Refreshed, and add a new
+    build option for using externap spirv-tools.
+  * install etc.: glslangValidator got renamed to just glslang.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Thu, 12 Oct 2023 14:47:03 +0300
+
+glslang (12.2.0-1) unstable; urgency=medium
+
+  * New upstream release.
+  * control: Bump spirv-tools depends.
+  * patches: Refreshed.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Mon, 12 Jun 2023 21:54:47 +0300
 
 glslang (12.0.0-2) unstable; urgency=medium
 
