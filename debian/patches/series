@@ -1,3 +1,4 @@
 0001-pkg-config-compatibility.patch
 glslang.pc-Add-missing-libraries.patch
 spirv.pc-Add-dependencies-on-SPIRV-Tools-and-glslang.patch
+0002-CVE-2025-3010-fix-null-pointer-dereference-in-isConversionAllowed.patch
