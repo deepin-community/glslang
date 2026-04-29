@@ -1,3 +1,11 @@
+glslang (15.0.0-1deepin1) unstable; urgency=medium
+
+  * CVE-2025-3010: fix null pointer dereference in isConversionAllowed.
+    Added null pointer check to prevent crash when processing malformed
+    input files.
+
+ -- hudeng <hudeng@deepin.org>  Wed, 29 Apr 2026 14:40:00 +0800
+
 glslang (15.0.0-1) unstable; urgency=medium
 
   * New upstream release.
