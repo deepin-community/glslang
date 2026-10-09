@@ -1,3 +1,26 @@
+glslang (15.1.0+1.4.309.0-1) unstable; urgency=medium
+
+  * New upstream release from vulkan-sdk-1.4.309.0 -tag.
+  * control: Bump spirv-tools depends.
+  * patches: Refresh pkgconfig patch.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Tue, 18 Mar 2025 19:32:57 +0200
+
+glslang (15.1.0-2) unstable; urgency=medium
+
+  * patches: Update pkgconf compatibility patch, refresh others.
+  * patches: Fix linking in spirv.pc. Thanks, Philippe Swartvagher!
+    (Closes: #1093845)
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Fri, 14 Feb 2025 08:29:18 +0200
+
+glslang (15.1.0-1) unstable; urgency=medium
+
+  * New upstream release.
+  * control: Bump spirv-tools depends.
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Thu, 16 Jan 2025 15:52:50 +0200
+
 glslang (15.0.0-1) unstable; urgency=medium
 
   * New upstream release.
