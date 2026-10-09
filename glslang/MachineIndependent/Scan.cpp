@@ -408,6 +408,7 @@ const std::unordered_map<const char*, int, str_hash, str_eq> KeywordMap {
     {"writeonly",WRITEONLY},
     {"atomic_uint",ATOMIC_UINT},
     {"volatile",VOLATILE},
+    {"nontemporal",NONTEMPORAL},
     {"patch",PATCH},
     {"sample",SAMPLE},
     {"subroutine",SUBROUTINE},
@@ -752,6 +753,12 @@ const std::unordered_map<const char*, int, str_hash, str_eq> KeywordMap {
 
     {"hitObjectNV",HITOBJECTNV},
     {"hitObjectAttributeNV",HITOBJECTATTRNV},
+
+    {"__function",FUNCTION},
+    {"tensorLayoutNV",TENSORLAYOUTNV},
+    {"tensorViewNV",TENSORVIEWNV},
+
+    {"coopvecNV",COOPVECNV},
 };
 const std::unordered_set<const char*, str_hash, str_eq> ReservedSet {
     "common",
@@ -1100,6 +1107,15 @@ int TScanContext::tokenizeIdentifier()
             (parseContext.version < 420 && ! parseContext.extensionTurnedOn(E_GL_ARB_shader_image_load_store))))
             reservedWord();
         return keyword;
+    case NONTEMPORAL:
+        if (parseContext.symbolTable.atBuiltInLevel())
+            return keyword;
+        if (parseContext.extensionTurnedOn(E_GL_EXT_nontemporal_keyword)) {
+            if (!parseContext.intermediate.usingVulkanMemoryModel())
+                parseContext.warn(loc, "Nontemporal without the Vulkan Memory Model is ignored", tokenText, "");
+            return keyword;
+        }
+        return identifierOrType();
     case PATCH:
         if (parseContext.symbolTable.atBuiltInLevel() ||
             (parseContext.isEsProfile() &&
@@ -1772,6 +1788,13 @@ int TScanContext::tokenizeIdentifier()
             return keyword;
         return identifierOrType();
 
+    case COOPVECNV:
+        afterType = true;
+        if (parseContext.symbolTable.atBuiltInLevel() ||
+            parseContext.extensionTurnedOn(E_GL_NV_cooperative_vector))
+            return keyword;
+        return identifierOrType();
+
     case DEMOTE:
         if (parseContext.extensionTurnedOn(E_GL_EXT_demote_to_helper_invocation))
             return keyword;
@@ -1804,6 +1827,15 @@ int TScanContext::tokenizeIdentifier()
         if (parseContext.symbolTable.atBuiltInLevel() ||
             (!parseContext.isEsProfile() && parseContext.version >= 460
                  && parseContext.extensionTurnedOn(E_GL_NV_shader_invocation_reorder)))
+            return keyword;
+        return identifierOrType();
+
+    case FUNCTION:
+    case TENSORLAYOUTNV:
+    case TENSORVIEWNV:
+        afterType = true;
+        if (parseContext.symbolTable.atBuiltInLevel() ||
+            parseContext.extensionTurnedOn(E_GL_NV_cooperative_matrix2))
             return keyword;
         return identifierOrType();
 

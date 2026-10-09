@@ -439,6 +439,43 @@ Id Builder::makeCooperativeMatrixTypeKHR(Id component, Id scope, Id rows, Id col
     constantsTypesGlobals.push_back(std::unique_ptr<Instruction>(type));
     module.mapInstruction(type);
 
+    if (emitNonSemanticShaderDebugInfo)
+    {
+        // Find a name for one of the parameters. It can either come from debuginfo for another
+        // type, or an OpName from a constant.
+        auto const findName = [&](Id id) {
+            Id id2 = debugId[id];
+            for (auto &t : groupedDebugTypes[NonSemanticShaderDebugInfo100DebugTypeBasic]) {
+                if (t->getResultId() == id2) {
+                    for (auto &s : strings) {
+                        if (s->getResultId() == t->getIdOperand(2)) {
+                            return s->getNameString();
+                        }
+                    }
+                }
+            }
+            for (auto &t : names) {
+                if (t->getIdOperand(0) == id) {
+                    return t->getNameString();
+                }
+            }
+            return "unknown";
+        };
+        std::string debugName = "coopmat<";
+        debugName += std::string(findName(component)) + ", ";
+        if (isConstantScalar(scope)) {
+            debugName += std::string("gl_Scope") + std::string(spv::ScopeToString((spv::Scope)getConstantScalar(scope))) + ", ";
+        } else {
+            debugName += std::string(findName(scope)) + ", ";
+        }
+        debugName += std::string(findName(rows)) + ", ";
+        debugName += std::string(findName(cols)) + ">";
+        // There's no nonsemantic debug info instruction for cooperative matrix types,
+        // use opaque composite instead.
+        auto const debugResultId = makeCompositeDebugType({}, debugName.c_str(), NonSemanticShaderDebugInfo100Structure, true);
+        debugId[type->getResultId()] = debugResultId;
+    }
+
     return type->getResultId();
 }
 
@@ -476,6 +513,28 @@ Id Builder::makeCooperativeMatrixTypeWithSameShape(Id component, Id otherType)
         assert(instr->getOpCode() == OpTypeCooperativeMatrixKHR);
         return makeCooperativeMatrixTypeKHR(component, instr->getIdOperand(1), instr->getIdOperand(2), instr->getIdOperand(3), instr->getIdOperand(4));
     }
+}
+
+Id Builder::makeCooperativeVectorTypeNV(Id componentType, Id components)
+{
+    // try to find it
+    Instruction* type;
+    for (int t = 0; t < (int)groupedTypes[OpTypeCooperativeVectorNV].size(); ++t) {
+        type = groupedTypes[OpTypeCooperativeVectorNV][t];
+        if (type->getIdOperand(0) == componentType &&
+            type->getIdOperand(1) == components)
+            return type->getResultId();
+    }
+
+    // not found, make it
+    type = new Instruction(getUniqueId(), NoType, OpTypeCooperativeVectorNV);
+    type->addIdOperand(componentType);
+    type->addIdOperand(components);
+    groupedTypes[OpTypeCooperativeVectorNV].push_back(type);
+    constantsTypesGlobals.push_back(std::unique_ptr<Instruction>(type));
+    module.mapInstruction(type);
+
+    return type->getResultId();
 }
 
 Id Builder::makeGenericType(spv::Op opcode, std::vector<spv::IdImmediate>& operands)
@@ -1326,6 +1385,7 @@ unsigned int Builder::getNumTypeConstituents(Id typeId) const
     case OpTypeVector:
     case OpTypeMatrix:
         return instr->getImmediateOperand(1);
+    case OpTypeCooperativeVectorNV:
     case OpTypeArray:
     {
         Id lengthId = instr->getIdOperand(1);
@@ -1364,6 +1424,7 @@ Id Builder::getScalarTypeId(Id typeId) const
     case OpTypeArray:
     case OpTypeRuntimeArray:
     case OpTypePointer:
+    case OpTypeCooperativeVectorNV:
         return getScalarTypeId(getContainedTypeId(typeId));
     default:
         assert(0);
@@ -1385,6 +1446,7 @@ Id Builder::getContainedTypeId(Id typeId, int member) const
     case OpTypeRuntimeArray:
     case OpTypeCooperativeMatrixKHR:
     case OpTypeCooperativeMatrixNV:
+    case OpTypeCooperativeVectorNV:
         return instr->getIdOperand(0);
     case OpTypePointer:
         return instr->getIdOperand(1);
@@ -1767,7 +1829,7 @@ Id Builder::importNonSemanticShaderDebugInfoInstructions()
     return nonSemanticShaderDebugInfo;
 }
 
-Id Builder::findCompositeConstant(Op typeClass, Id typeId, const std::vector<Id>& comps)
+Id Builder::findCompositeConstant(Op typeClass, Op opcode, Id typeId, const std::vector<Id>& comps, size_t numMembers)
 {
     Instruction* constant = nullptr;
     bool found = false;
@@ -1775,6 +1837,13 @@ Id Builder::findCompositeConstant(Op typeClass, Id typeId, const std::vector<Id>
         constant = groupedConstants[typeClass][i];
 
         if (constant->getTypeId() != typeId)
+            continue;
+
+        if (constant->getOpCode() != opcode) {
+            continue;
+        }
+
+        if (constant->getNumOperands() != (int)numMembers)
             continue;
 
         // same contents?
@@ -1826,7 +1895,7 @@ Id Builder::makeCompositeConstant(Id typeId, const std::vector<Id>& members, boo
 
     bool replicate = false;
     size_t numMembers = members.size();
-    if (useReplicatedComposites) {
+    if (useReplicatedComposites || typeClass == OpTypeCooperativeVectorNV) {
         // use replicate if all members are the same
         replicate = numMembers > 0 &&
             std::equal(members.begin() + 1, members.end(), members.begin());
@@ -1848,8 +1917,9 @@ Id Builder::makeCompositeConstant(Id typeId, const std::vector<Id>& members, boo
     case OpTypeMatrix:
     case OpTypeCooperativeMatrixKHR:
     case OpTypeCooperativeMatrixNV:
+    case OpTypeCooperativeVectorNV:
         if (! specConstant) {
-            Id existing = findCompositeConstant(typeClass, typeId, members);
+            Id existing = findCompositeConstant(typeClass, opcode, typeId, members, numMembers);
             if (existing)
                 return existing;
         }
@@ -2324,7 +2394,7 @@ Id Builder::makeDebugFunction([[maybe_unused]] Function* function, Id nameId, Id
     return funcId;
 }
 
-Id Builder::makeDebugLexicalBlock(uint32_t line) {
+Id Builder::makeDebugLexicalBlock(uint32_t line, uint32_t column) {
     assert(!currentDebugScopeId.empty());
 
     Id lexId = getUniqueId();
@@ -2334,7 +2404,7 @@ Id Builder::makeDebugLexicalBlock(uint32_t line) {
     lex->addImmediateOperand(NonSemanticShaderDebugInfo100DebugLexicalBlock);
     lex->addIdOperand(makeDebugSource(currentFileId));
     lex->addIdOperand(makeUintConstant(line));
-    lex->addIdOperand(makeUintConstant(0)); // column
+    lex->addIdOperand(makeUintConstant(column)); // column
     lex->addIdOperand(currentDebugScopeId.top()); // scope
     constantsTypesGlobals.push_back(std::unique_ptr<Instruction>(lex));
     module.mapInstruction(lex);
@@ -2367,10 +2437,14 @@ void Builder::makeReturn(bool implicit, Id retVal)
 }
 
 // Comments in header
-void Builder::enterLexicalBlock(uint32_t line)
+void Builder::enterLexicalBlock(uint32_t line, uint32_t column)
 {
+    if (!emitNonSemanticShaderDebugInfo) {
+        return;
+    }
+
     // Generate new lexical scope debug instruction
-    Id lexId = makeDebugLexicalBlock(line);
+    Id lexId = makeDebugLexicalBlock(line, column);
     currentDebugScopeId.push(lexId);
     dirtyScopeTracker = true;
 }
@@ -2378,6 +2452,10 @@ void Builder::enterLexicalBlock(uint32_t line)
 // Comments in header
 void Builder::leaveLexicalBlock()
 {
+    if (!emitNonSemanticShaderDebugInfo) {
+        return;
+    }
+
     // Pop current scope from stack and clear current scope
     currentDebugScopeId.pop();
     dirtyScopeTracker = true;
@@ -2976,7 +3054,7 @@ Id Builder::smearScalar(Decoration precision, Id scalar, Id vectorType)
     assert(getTypeId(scalar) == getScalarTypeId(vectorType));
 
     int numComponents = getNumTypeComponents(vectorType);
-    if (numComponents == 1)
+    if (numComponents == 1 && !isCooperativeVectorType(vectorType))
         return scalar;
 
     Instruction* smear = nullptr;
@@ -2993,7 +3071,7 @@ Id Builder::smearScalar(Decoration precision, Id scalar, Id vectorType)
         auto result_id = makeCompositeConstant(vectorType, members, isSpecConstant(scalar));
         smear = module.getInstruction(result_id);
     } else {
-        bool replicate = useReplicatedComposites && (numComponents > 0);
+        bool replicate = (useReplicatedComposites || isCooperativeVectorType(vectorType)) && (numComponents > 0);
 
         if (replicate) {
             numComponents = 1;
@@ -3106,6 +3184,9 @@ Id Builder::createTextureCall(Decoration precision, Id resultType, bool sparse, 
     }
     if (parameters.volatil) {
         mask = mask | ImageOperandsVolatileTexelKHRMask;
+    }
+    if (parameters.nontemporal) {
+        mask = mask | ImageOperandsNontemporalMask;
     }
     mask = mask | signExtensionMask;
     // insert the operand for the mask, if any bits were set.
@@ -3380,7 +3461,8 @@ Id Builder::createCompositeCompare(Decoration precision, Id value1, Id value2, b
 Id Builder::createCompositeConstruct(Id typeId, const std::vector<Id>& constituents)
 {
     assert(isAggregateType(typeId) || (getNumTypeConstituents(typeId) > 1 &&
-           getNumTypeConstituents(typeId) == constituents.size()));
+           getNumTypeConstituents(typeId) == constituents.size()) ||
+           (isCooperativeVectorType(typeId) && constituents.size() == 1));
 
     if (generatingOpCodeForSpecConst) {
         // Sometime, even in spec-constant-op mode, the constant composite to be
@@ -3399,7 +3481,7 @@ Id Builder::createCompositeConstruct(Id typeId, const std::vector<Id>& constitue
     bool replicate = false;
     size_t numConstituents = constituents.size();
 
-    if (useReplicatedComposites) {
+    if (useReplicatedComposites || isCooperativeVectorType(typeId)) {
         replicate = numConstituents > 0 &&
             std::equal(constituents.begin() + 1, constituents.end(), constituents.begin());
     }
@@ -3421,6 +3503,41 @@ Id Builder::createCompositeConstruct(Id typeId, const std::vector<Id>& constitue
     return op->getResultId();
 }
 
+// coopmat conversion
+Id Builder::createCooperativeMatrixConversion(Id typeId, Id source)
+{
+    Instruction* op = new Instruction(getUniqueId(), typeId, OpCooperativeMatrixConvertNV);
+    op->addIdOperand(source);
+    addInstruction(std::unique_ptr<Instruction>(op));
+
+    return op->getResultId();
+}
+
+// coopmat reduce
+Id Builder::createCooperativeMatrixReduce(Op opcode, Id typeId, Id source, unsigned int mask, Id func)
+{
+    Instruction* op = new Instruction(getUniqueId(), typeId, opcode);
+    op->addIdOperand(source);
+    op->addImmediateOperand(mask);
+    op->addIdOperand(func);
+    addInstruction(std::unique_ptr<Instruction>(op));
+
+    return op->getResultId();
+}
+
+// coopmat per-element operation
+Id Builder::createCooperativeMatrixPerElementOp(Id typeId, const std::vector<Id>& operands)
+{
+    Instruction* op = new Instruction(getUniqueId(), typeId, spv::OpCooperativeMatrixPerElementOpNV);
+    // skip operand[0], which is where the result is stored
+    for (uint32_t i = 1; i < operands.size(); ++i) {
+        op->addIdOperand(operands[i]);
+    }
+    addInstruction(std::unique_ptr<Instruction>(op));
+
+    return op->getResultId();
+}
+
 // Vector or scalar constructor
 Id Builder::createConstructor(Decoration precision, const std::vector<Id>& sources, Id resultTypeId)
 {
@@ -3430,7 +3547,7 @@ Id Builder::createConstructor(Decoration precision, const std::vector<Id>& sourc
 
     // Special case: when calling a vector constructor with a single scalar
     // argument, smear the scalar
-    if (sources.size() == 1 && isScalar(sources[0]) && numTargetComponents > 1)
+    if (sources.size() == 1 && isScalar(sources[0]) && (numTargetComponents > 1 || isCooperativeVectorType(resultTypeId)))
         return smearScalar(precision, sources[0], resultTypeId);
 
     // Special case: 2 vectors of equal size
@@ -3494,7 +3611,7 @@ Id Builder::createConstructor(Decoration precision, const std::vector<Id>& sourc
 
         if (isScalar(sources[i]) || isPointer(sources[i]))
             latchResult(sources[i]);
-        else if (isVector(sources[i]))
+        else if (isVector(sources[i]) || isCooperativeVector(sources[i]))
             accumulateVectorConstituents(sources[i]);
         else if (isMatrix(sources[i]))
             accumulateMatrixConstituents(sources[i]);
@@ -3941,6 +4058,9 @@ Id Builder::accessChainLoad(Decoration precision, Decoration l_nonUniform,
             if (constant) {
                 id = createCompositeExtract(accessChain.base, swizzleBase, indexes);
                 setPrecision(id, precision);
+            } else if (isCooperativeVector(accessChain.base)) {
+                assert(accessChain.indexChain.size() == 1);
+                id = createVectorExtractDynamic(accessChain.base, resultType, accessChain.indexChain[0]);
             } else {
                 Id lValue = NoResult;
                 if (spvVersion >= Spv_1_4 && isValidInitializer(accessChain.base)) {
